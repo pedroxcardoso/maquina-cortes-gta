@@ -1,0 +1,13 @@
+{
+  "name": "maquina-cortes-gta",
+  "version": "1.0.0",
+  "description": "Transforma um vídeo de streamer ou podcast em vários cortes verticais de Shorts sobre GTA 6, cada um com um assunto e um gancho diferente, no estilo metade streamer e metade vídeo. Legenda palavra por palavra, pausas cortadas, zoom nos cortes e a marca d'água do seu perfil. Edição em Remotion, transcrição local com whisper.cpp.",
+  "author": {
+    "name": "Pedro Cardoso",
+    "url": "https://github.com/pedroxcardoso"
+  },
+  "homepage": "https://github.com/pedroxcardoso/maquina-cortes-gta",
+  "repository": "https://github.com/pedroxcardoso/maquina-cortes-gta",
+  "license": "MIT",
+  "keywords": ["gta", "gta6", "shorts", "cortes", "remotion", "whisper", "legendas", "video", "pt-br"]
+}

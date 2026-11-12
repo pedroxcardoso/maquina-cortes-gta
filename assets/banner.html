@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+  :root { --night:#12062e; --violet:#5a1d9a; --pink:#ff3d9a; --orange:#ff8a3d; --amber:#ffc23d; --txt:#fff6ee; --mut:#d9b8ec; --yellow:#ffd400; }
+  * { margin:0; box-sizing:border-box; }
+  body { width:1280px; height:640px; overflow:hidden; position:relative; font-family:"Segoe UI", system-ui, sans-serif; color:var(--txt);
+         background:linear-gradient(180deg,#12062e 0%,#2a0f5c 34%,#6a1f9c 54%,#d8338e 74%,#ff8a3d 92%,#ffc23d 100%); }
+  .stars { position:absolute; inset:0 0 40% 0; background-image:radial-gradient(circle,#fff 0 1.2px,transparent 1.6px); background-size:61px 53px; opacity:.35; mask-image:linear-gradient(180deg,#000,transparent); }
+  .sun { position:absolute; left:50%; bottom:118px; width:520px; height:260px; transform:translateX(-12%); border-radius:260px 260px 0 0;
+         background:linear-gradient(180deg,#ffd45a 0%,#ff8a3d 45%,#ff3d9a 100%); opacity:.9;
+         -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 22px,transparent 22px 29px),linear-gradient(#000,#000); -webkit-mask-composite:source-in; }
+  .city { position:absolute; left:0; right:0; bottom:0; height:190px; }
+  .shade { position:absolute; inset:0; background:linear-gradient(90deg,rgba(14,5,36,.92) 0%,rgba(14,5,36,.78) 42%,rgba(14,5,36,0) 68%); }
+  .palm { position:absolute; bottom:-6px; fill:#0c0420; }
+  .left { position:absolute; left:72px; top:78px; width:660px; }
+  .tag { display:inline-flex; gap:10px; align-items:center; font:600 15px/1 "Cascadia Code",Consolas,monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); }
+  .dot { width:9px; height:9px; border-radius:50%; background:linear-gradient(135deg,var(--amber),var(--pink)); }
+  h1 { margin-top:24px; font-family:"Segoe UI Black","Segoe UI",sans-serif; font-weight:900; font-size:104px; line-height:.94; letter-spacing:-.045em; text-shadow:0 8px 0 rgba(20,0,60,.55); }
+  h1 span { background:linear-gradient(90deg,var(--amber),var(--pink) 55%,#c47bff); -webkit-background-clip:text; color:transparent; text-shadow:none; filter:drop-shadow(0 7px 0 rgba(12,4,32,.7)); }
+  p.sub { margin-top:26px; font-size:26px; line-height:1.34; color:#f1e3ff; max-width:600px; }
+  p.sub b { color:#fff; font-weight:700; }
+  .chips { margin-top:30px; display:flex; gap:10px; flex-wrap:wrap; max-width:640px; }
+  .chip { font:600 15px/1 "Cascadia Code",Consolas,monospace; padding:10px 14px; border:1px solid rgba(255,255,255,.22); border-radius:999px; background:rgba(18,6,46,.55); color:#f4e6ff; }
+  .chip i { font-style:normal; color:var(--amber); }
+
+  .phone { position:absolute; right:84px; top:46px; width:300px; height:548px; border-radius:40px; background:#0c0420; border:1px solid rgba(255,255,255,.2);
+           box-shadow:0 40px 80px rgba(0,0,0,.55), inset 0 0 0 7px #1a0a3a; overflow:hidden; padding:8px; }
+  .screen { position:relative; width:100%; height:100%; border-radius:32px; overflow:hidden; background:#000; }
+  .half { position:absolute; left:0; right:0; height:50%; overflow:hidden; }
+  .top { top:0; background:linear-gradient(180deg,#2b0f5a,#7a2aa8 70%,#c43b9a); }
+  .bot { bottom:0; background:linear-gradient(180deg,#ff6aa0 0%,#ff9a4d 55%,#ffcf5a 100%); }
+  .head { position:absolute; left:50%; top:62px; width:84px; height:96px; margin-left:-42px; border-radius:42px 42px 38px 38px; background:#1a0a3a; }
+  .shoulders { position:absolute; left:50%; top:152px; width:190px; height:90px; margin-left:-95px; border-radius:90px 90px 0 0; background:#1a0a3a; }
+  .phones { position:absolute; left:50%; top:56px; width:112px; height:60px; margin-left:-56px; border:9px solid #3a1a6e; border-bottom:none; border-radius:60px 60px 0 0; }
+  .mic { position:absolute; left:50%; top:128px; width:20px; height:58px; margin-left:4px; border-radius:10px; background:#3a1a6e; box-shadow:0 0 0 3px #0c0420; }
+  .road { position:absolute; left:-20%; right:-20%; bottom:0; height:56%; background:linear-gradient(180deg,#2a0f5c,#12062e); clip-path:polygon(38% 0,62% 0,100% 100%,0 100%); }
+  .lane { position:absolute; left:50%; bottom:0; width:6px; height:56%; margin-left:-3px; background:repeating-linear-gradient(180deg,#ffe38a 0 14px,transparent 14px 30px); opacity:.9; }
+  .car { position:absolute; left:50%; bottom:26px; width:78px; height:30px; margin-left:-39px; border-radius:14px 14px 6px 6px; background:#12062e; box-shadow:0 0 0 2px #ff3d9a; }
+  .car::before { content:""; position:absolute; left:14px; right:14px; top:-14px; height:18px; border-radius:12px 12px 0 0; background:#12062e; }
+  .car::after { content:""; position:absolute; left:6px; right:6px; bottom:8px; height:4px; background:#ff3d3d; border-radius:2px; box-shadow:0 0 10px #ff3d3d; }
+  .grad { position:absolute; left:0; right:0; top:50%; height:130px; margin-top:-65px; background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.6) 50%,rgba(0,0,0,0)); }
+  .cap { position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); text-align:center; font-family:"Segoe UI Black","Segoe UI",sans-serif; font-weight:900; font-size:34px; letter-spacing:-.01em; line-height:1; text-transform:uppercase;
+         color:#fff; -webkit-text-stroke:5px #000; paint-order:stroke fill; }
+  .cap b { color:var(--yellow); }
+  .wm { position:absolute; right:12px; top:20px; display:flex; align-items:center; gap:6px; font-family:"Segoe UI Black","Segoe UI",sans-serif; font-size:12px; font-weight:900; text-transform:uppercase; -webkit-text-stroke:3px #14002a; paint-order:stroke fill; }
+  .wm i { width:30px; height:30px; border-radius:50%; border:2px solid #fff; background:linear-gradient(135deg,#ff3d9a,#5a1d9a,#ffc23d); display:block; }
+  .tick { position:absolute; left:10px; right:10px; bottom:10px; height:5px; border-radius:3px; background:rgba(255,255,255,.25); }
+  .tick u { display:block; width:62%; height:100%; border-radius:3px; background:linear-gradient(90deg,var(--amber),var(--pink)); }
+
+  .card { position:absolute; left:716px; top:452px; width:236px; padding:14px 16px; border-radius:18px; background:rgba(18,6,46,.82); border:1px solid rgba(255,255,255,.2); box-shadow:0 20px 40px rgba(0,0,0,.4); }
+  .card small { display:block; font:600 11px/1 "Cascadia Code",Consolas,monospace; letter-spacing:.12em; color:var(--mut); text-transform:uppercase; }
+  .row { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:14px; color:#f4e6ff; }
+  .row em { font-style:normal; font:700 12px/1 "Cascadia Code",Consolas,monospace; color:var(--amber); padding:4px 6px; border-radius:6px; background:rgba(255,194,61,.12); }
+  .row s { margin-left:auto; text-decoration:none; font-weight:800; color:#7dffb0; }
+</style></head>
+<body>
+  <div class="stars"></div>
+  <div class="sun"></div>
+  <svg class="city" viewBox="0 0 1280 190" preserveAspectRatio="none" fill="#0c0420"><path d="M0 190V120h40V96h28v24h30V70h34v50h26V104h40v86H0zM520 190v-80h30V84h36v26h24V60h40v50h30v80zM760 190v-96h26V70h30v24h34V50h38v44h28v96zM1040 190v-86h30V76h34v28h26V88h40v102zM1180 190v-70h30V92h40v28h30v70z"/></svg>
+  <div class="shade"></div>
+  <svg class="palm" style="left:-30px;width:330px;height:560px" viewBox="0 0 330 560"><path d="M150 560C158 430 150 300 120 150c8 0 12 0 20 4 28 140 30 280 40 406z"/><g transform="translate(128 150)"><path d="M0 0Q-70-40-150 10Q-80-18 0 0Z"/><path d="M0 0Q-50-70-130-70Q-60-50 0 0Z"/><path d="M0 0Q-10-80-70-120Q-24-70 0 0Z"/><path d="M0 0Q30-80 100-96Q40-62 0 0Z"/><path d="M0 0Q70-50 150-30Q80-26 0 0Z"/><path d="M0 0Q60-20 128 40Q60 4 0 0Z"/><path d="M0 0Q-60 10-110 60Q-50 6 0 0Z"/></g></svg>
+  <svg class="palm" style="right:-60px;width:360px;height:600px" viewBox="0 0 330 560"><path d="M150 560C158 430 150 300 120 150c8 0 12 0 20 4 28 140 30 280 40 406z"/><g transform="translate(128 150)"><path d="M0 0Q-70-40-150 10Q-80-18 0 0Z"/><path d="M0 0Q-50-70-130-70Q-60-50 0 0Z"/><path d="M0 0Q-10-80-70-120Q-24-70 0 0Z"/><path d="M0 0Q30-80 100-96Q40-62 0 0Z"/><path d="M0 0Q70-50 150-30Q80-26 0 0Z"/><path d="M0 0Q60-20 128 40Q60 4 0 0Z"/><path d="M0 0Q-60 10-110 60Q-50 6 0 0Z"/></g></svg>
+
+  <div class="left">
+    <div class="tag"><span class="dot"></span>Skill para Claude · Shorts de GTA 6</div>
+    <h1>máquina-<br><span>cortes-gta</span></h1>
+    <p class="sub">Um vídeo longo vira vários <b>cortes prontos</b>: metade streamer, metade vídeo, legenda palavra por palavra e o gancho escolhido pela skill.</p>
+    <div class="chips">
+      <span class="chip"><i>●</i> Remotion</span>
+      <span class="chip"><i>●</i> whisper.cpp local</span>
+      <span class="chip"><i>●</i> vários assuntos por vídeo</span>
+      <span class="chip"><i>●</i> sua marca d'água</span>
+    </div>
+  </div>
+
+  <div class="phone"><div class="screen">
+    <div class="half top"><div class="shoulders"></div><div class="head"></div><div class="phones"></div><div class="mic"></div></div>
+    <div class="half bot"><div class="road"></div><div class="lane"></div><div class="car"></div></div>
+    <div class="grad"></div>
+    <div class="cap">TÁ <b>LIGADO</b></div>
+    <div class="wm"><i></i>SEU PERFIL</div>
+    <div class="tick"><u></u></div>
+  </div></div>
+
+  <div class="card">
+    <small>cortes gerados</small>
+    <div class="row"><em>01</em>tamanho do mapa<s>9</s></div>
+    <div class="row"><em>02</em>pré-download<s>8</s></div>
+    <div class="row"><em>03</em>horário de lançamento<s>7</s></div>
+  </div>
+</body></html>

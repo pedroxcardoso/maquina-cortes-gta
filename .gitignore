@@ -1,0 +1,8 @@
+# motor instalado e arquivos gerados
+node_modules/
+/cortes/
+/work/
+*.mp4
+*.wav
+.DS_Store
+__pycache__/

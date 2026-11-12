@@ -1,0 +1,17 @@
+{
+  "name": "maquina-cortes-gta-engine",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Motor de render (Remotion) da skill maquina-cortes-gta",
+  "scripts": {
+    "studio": "remotion studio src/index.js"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.543",
+    "@remotion/google-fonts": "4.0.543",
+    "@remotion/install-whisper-cpp": "4.0.543",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.543"
+  }
+}

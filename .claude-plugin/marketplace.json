@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "maquina-cortes-gta",
+  "description": "Skill de cortes de GTA 6 para Shorts, em português.",
+  "owner": {
+    "name": "Pedro Cardoso",
+    "url": "https://github.com/pedroxcardoso"
+  },
+  "plugins": [
+    {
+      "name": "maquina-cortes-gta",
+      "description": "Vídeo longo vira vários cortes de Shorts (metade streamer, metade vídeo), com legenda palavra por palavra e a marca d'água do seu perfil.",
+      "source": "./",
+      "category": "video",
+      "author": {
+        "name": "Pedro Cardoso"
+      }
+    }
+  ]
+}
