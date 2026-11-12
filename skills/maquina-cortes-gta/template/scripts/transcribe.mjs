@@ -8,11 +8,13 @@ import os from 'node:os';
 import path from 'node:path';
 import {transcribe, toCaptions} from '@remotion/install-whisper-cpp';
 
-const [video, work, langArg] = process.argv.slice(2);
+const [video, work, langArg, maxArg] = process.argv.slice(2);
 if (!video || !work) {
-  console.error('Uso: node scripts/transcribe.mjs <video> <pasta_de_trabalho> [idioma]');
+  console.error('Uso: node scripts/transcribe.mjs <video> <pasta_de_trabalho> [idioma] [segundos_maximos]');
   process.exit(1);
 }
+// Opcional: transcrever só os primeiros N segundos (útil para testar rápido em vídeo longo).
+const maxSeconds = maxArg ? Number(maxArg) : null;
 const HOME = path.join(os.homedir(), '.maquina-cortes-gta');
 const cfg = JSON.parse(fs.readFileSync(path.join(HOME, 'config.json'), 'utf8'));
 const model = cfg.whisperModel || 'small';
@@ -28,7 +30,7 @@ fs.writeFileSync(path.join(work, 'meta.json'), JSON.stringify(meta, null, 2));
 
 // áudio 16 kHz mono (formato que o whisper.cpp pede)
 const wav = path.join(work, 'audio16k.wav');
-execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', video, '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', wav]);
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', video, ...(maxSeconds ? ['-t', String(maxSeconds)] : []), '-vn', '-ac', '1', '-ar', '16000', '-c:a', 'pcm_s16le', wav]);
 
 // silêncios (para cortar as pausas depois)
 const sd = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'silencedetect=noise=-35dB:d=0.45', '-f', 'null', '-'], {encoding: 'utf8'});

@@ -31,7 +31,25 @@ const Punch = ({index, children}) => {
   return <AbsoluteFill style={{transform: `scale(${s})`}}>{children}</AbsoluteFill>;
 };
 
-const Top = ({segments, fps, sourceFile, focus}) => {
+// Estilo do vídeo de cima. Sem `crop`: preenche a metade (cover) e usa `focus` para enquadrar.
+// Com `crop` ({x, y, w, h} em pixels do vídeo de origem): amplia só essa região (ex.: a câmera do streamer
+// numa live com várias câmeras e a tela do jogo) até preencher a metade.
+const topVideoStyle = (crop, srcW, srcH, focus) => {
+  if (!crop) {
+    return {width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${focus.x}% ${focus.y}%`};
+  }
+  const s = Math.max(W / crop.w, TOP_H / crop.h);
+  return {
+    position: 'absolute',
+    width: srcW * s,
+    height: srcH * s,
+    left: -crop.x * s + (W - crop.w * s) / 2,
+    top: -crop.y * s + (TOP_H - crop.h * s) / 2,
+    objectFit: 'fill',
+  };
+};
+
+const Top = ({segments, fps, sourceFile, focus, crop, srcW, srcH}) => {
   let offset = 0;
   return (
     <div style={{position: 'absolute', left: 0, top: 0, width: W, height: TOP_H, overflow: 'hidden', background: '#000'}}>
@@ -47,7 +65,7 @@ const Top = ({segments, fps, sourceFile, focus}) => {
                 src={staticFile(sourceFile)}
                 startFrom={start}
                 endAt={start + frames}
-                style={{width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${focus.x}% ${focus.y}%`}}
+                style={topVideoStyle(crop, srcW, srcH, focus)}
               />
             </Punch>
           </Sequence>
@@ -142,7 +160,15 @@ export const SplitCut = (props) => {
   const total = Math.max(1, Math.round(props.totalSeconds * fps));
   return (
     <AbsoluteFill style={{background: '#000'}}>
-      <Top segments={props.segments} fps={fps} sourceFile={props.sourceFile} focus={props.focus} />
+      <Top
+        segments={props.segments}
+        fps={fps}
+        sourceFile={props.sourceFile}
+        focus={props.focus}
+        crop={props.crop}
+        srcW={props.sourceWidth}
+        srcH={props.sourceHeight}
+      />
       <Bottom file={props.bottomFile} start={props.bottomStart} duration={props.bottomDuration} fps={fps} total={total} />
       <div
         style={{

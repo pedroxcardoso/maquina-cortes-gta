@@ -13,6 +13,9 @@ const defaultProps = {
   bottomStart: 0,
   bottomDuration: 0,
   focus: {x: 50, y: 35},
+  crop: null,
+  sourceWidth: 1280,
+  sourceHeight: 720,
   pages: [],
   watermark: {logo: 'logo.png', name: 'SEU PERFIL'},
 };

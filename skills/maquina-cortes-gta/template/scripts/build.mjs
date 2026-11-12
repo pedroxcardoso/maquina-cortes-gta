@@ -23,6 +23,7 @@ const read = (f) => JSON.parse(fs.readFileSync(path.join(work, f), 'utf8'));
 const words = read('captions.json');
 const silences = read('silences.json');
 const cuts = read('cuts.json');
+const meta = read('meta.json');
 fs.mkdirSync(outDir, {recursive: true});
 
 // logo na pasta pública do render
@@ -100,7 +101,7 @@ cuts.clips.forEach((clip, idx) => {
     remapped.push({text: w.text.toUpperCase(), startMs: Math.round(o * 1000), endMs: Math.round(oe * 1000)});
   }
 
-  const bottomStart = Math.min(clip.bottomStart ?? (idx * 17) % Math.max(1, bottomTotal - 5), Math.max(0, bottomTotal - 5));
+  const bottomStart = Math.min(clip.bottomStart ?? (8 + idx * 17) % Math.max(1, bottomTotal - 5), Math.max(0, bottomTotal - 5));
   const props = {
     totalSeconds: total,
     segments: segs.map(({from, to}) => ({from, to})),
@@ -109,6 +110,9 @@ cuts.clips.forEach((clip, idx) => {
     bottomStart,
     bottomDuration: bottomTotal - bottomStart,
     focus: clip.focus || {x: 50, y: 35},
+    crop: clip.crop || null,
+    sourceWidth: meta.width,
+    sourceHeight: meta.height,
     pages: makePages(remapped),
     watermark: {logo: logoName, name: cfg.profileName},
   };
@@ -116,10 +120,12 @@ cuts.clips.forEach((clip, idx) => {
   fs.writeFileSync(propsFile, JSON.stringify(props));
   const out = path.resolve(outDir, `${clip.id}.mp4`);
   console.log(`> Renderizando ${clip.id} (${total.toFixed(1)} s)`);
+  // chama o CLI do Remotion direto pelo Node (sem shell): funciona com espaços no caminho, no Windows e fora dele
+  const cli = path.join(ENGINE, 'node_modules', '@remotion', 'cli', 'remotion-cli.js');
   const r = spawnSync(
-    process.platform === 'win32' ? 'npx.cmd' : 'npx',
-    ['remotion', 'render', 'src/index.js', 'SplitCut', out, `--props=${propsFile}`, `--public-dir=${path.resolve(work)}`, '--codec=h264', '--crf=20', '--log=error'],
-    {cwd: ENGINE, stdio: 'inherit', shell: process.platform === 'win32'},
+    process.execPath,
+    [cli, 'render', 'src/index.js', 'SplitCut', out, `--props=${propsFile}`, `--public-dir=${path.resolve(work)}`, '--codec=h264', '--crf=20', '--log=error'],
+    {cwd: ENGINE, stdio: 'inherit'},
   );
   results.push({id: clip.id, arquivo: out, segundos: Number(total.toFixed(1)), ok: r.status === 0});
 });

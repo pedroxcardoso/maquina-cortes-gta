@@ -25,7 +25,7 @@ node "<skill>/scripts/setup.mjs" --check
 
 Se `perfilConfigurado` for `false`, peça **numa única mensagem**:
 
-1. o **nome do perfil** como deve aparecer na marca d'água (ex.: `PORTAL GTA 6`);
+1. o **nome do perfil** como deve aparecer na marca d'água (ex.: `SEU CANAL`);
 2. a **logo** (o usuário anexa a imagem; PNG ou JPG, de preferência quadrada).
 
 Ache o caminho do arquivo anexado na conversa e rode:
@@ -49,7 +49,7 @@ yt-dlp -S "res:1080" -f "bv*+ba/b" --merge-output-format mp4 --no-playlist -o "w
 yt-dlp -S "res:720"  -f "bv*+ba/b" --merge-output-format mp4 --no-playlist -o "work/bottom.%(ext)s" "LINK_DA_METADE_DE_BAIXO"
 ```
 
-Se for arquivo, copie-o para `work/source.mp4` (e `work/bottom.mp4`); se não for mp4, converta com `ffmpeg -i ARQ -c:v libx264 -c:a aac work/source.mp4`. Se o yt-dlp devolver HTTP 429, espere um pouco e tente de novo; se persistir, peça o arquivo.
+Se for arquivo, copie-o para `work/source.mp4` (e `work/bottom.mp4`); se não for mp4, converta com `ffmpeg -i ARQ -c:v libx264 -c:a aac work/source.mp4`. Se o yt-dlp devolver HTTP 429, espere um pouco e tente de novo; se persistir, peça o arquivo. Se disser que o vídeo tem **restrição de idade** ("Sign in to confirm your age"), peça o arquivo de vídeo ao usuário: **não use os cookies do navegador dele sem ele pedir**.
 
 ## 4. Transcrever
 
@@ -57,7 +57,7 @@ Se for arquivo, copie-o para `work/source.mp4` (e `work/bottom.mp4`); se não fo
 node ~/.maquina-cortes-gta/engine/scripts/transcribe.mjs work/source.mp4 work pt
 ```
 
-(Troque `pt` pelo idioma do vídeo.) Gera `captions.json` (palavra por palavra), `silences.json` e `meta.json`. Para **ler** a transcrição sem despejar o JSON:
+(Troque `pt` pelo idioma do vídeo. Um 4º argumento opcional limita a transcrição aos primeiros N segundos, útil para testar rápido em vídeo longo; no meu teste, 6 minutos de áudio levaram ~3,5 min com o modelo `small`.) Gera `captions.json` (palavra por palavra), `silences.json` e `meta.json`. Para **ler** a transcrição sem despejar o JSON:
 
 ```bash
 node ~/.maquina-cortes-gta/engine/scripts/transcript-text.mjs work
@@ -94,6 +94,8 @@ O usuário **não escolhe** os trechos. Você lê a transcrição e decide, segu
 ```
 
 (`id` com número e assunto; `bottomStart` é opcional e dá um ponto de partida diferente para o vídeo de baixo.)
+
+**Live com várias câmeras ou tela do jogo ocupando o quadro** (ex.: um react com 4 câmeras pequenas ao lado do jogo): o `focus` sozinho não acha o streamer. Olhe o quadro extraído e adicione `"crop": {"x": 1092, "y": 118, "w": 146, "h": 130}` ao corte, em **pixels do vídeo de origem**, em volta da câmera de quem está falando (proporção ~1,125:1 para preencher a metade de cima). Câmera pequena ampliada fica borrada; avise o usuário e sugira uma origem com o streamer em plano grande.
 
 ## 6. Renderizar
 
