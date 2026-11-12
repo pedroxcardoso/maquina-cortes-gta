@@ -53,7 +53,8 @@ function segmentsFor(start, end, minSilence = 0.5, pad = 0.12) {
 }
 
 // cortes rápidos: quebra planos longos a cada ~`every` segundos, sempre no começo de uma palavra
-// (não tira conteúdo; cada quebra ganha zoom, flash e swoosh). every = 0 desliga.
+// (não tira conteúdo; cada quebra é um jump cut com mudança de zoom, SEM flash nem swoosh; só as viradas de seção
+// listadas em `turns` ganham flash e swoosh). every = 0 desliga.
 function splitSegs(segs, every) {
   if (!every) return segs;
   const out = [];
@@ -102,9 +103,20 @@ const results = [];
 for (const [idx, clip] of cuts.clips.entries()) {
   const start = Math.max(0, clip.start);
   const end = Math.min(sourceTotal, clip.end);
-  // `ritmo`: "rapido" (padrão, quebra a cada ~3,2 s), "normal" (só tira as pausas) ou `cutEvery` em segundos
-  const every = clip.ritmo === 'normal' ? 0 : clip.cutEvery ?? 3.2;
-  const segs = splitSegs(segmentsFor(start, end), every);
+  // `ritmo`: padrão = jump cuts a cada ~2,8 s (zoom muda, corte seco, SEM swoosh); "normal" = só tira as pausas;
+  // "rapido" = o estilo antigo (flash + swoosh em TODO corte); `cutEvery` em segundos muda o intervalo.
+  // `turns`: lista de segundos (do vídeo de origem) das VIRADAS DE SEÇÃO (muda de assunto, entra b-roll, ex.: o
+  // streamer cita PlayStation/PS5): só nelas entram flash e swoosh (3 a 5 por corte).
+  const legacy = clip.ritmo === 'rapido';
+  const every = clip.ritmo === 'normal' ? 0 : clip.cutEvery ?? (legacy ? 3.2 : 2.8);
+  let segs = splitSegs(segmentsFor(start, end), every);
+  for (const t of clip.turns || []) {
+    const k = segs.findIndex((x) => t > x.from + 0.3 && t < x.to - 0.3);
+    if (k >= 0) segs.splice(k, 1, {from: segs[k].from, to: t}, {from: t, to: segs[k].to});
+  }
+  segs.forEach((x, i) => {
+    x.turn = i > 0 && (legacy || (clip.turns || []).some((t) => Math.abs(t - x.from) < 0.05));
+  });
 
   // linha do tempo nova, em quadros inteiros (mesma conta do componente)
   let outFrames = 0;
@@ -145,7 +157,7 @@ for (const [idx, clip] of cuts.clips.entries()) {
   const whoosh = sfxFile('whoosh');
   const pop = sfxFile('pop');
   if (impact) sfx.push({file: impact, at: 0, volume: 0.5 * gain});
-  if (whoosh) mapped.slice(1).forEach((m) => sfx.push({file: whoosh, at: Math.max(0, m.outStart - 0.08), volume: 0.45 * gain}));
+  if (whoosh) mapped.filter((m) => m.turn).forEach((m) => sfx.push({file: whoosh, at: Math.max(0, m.outStart - 0.08), volume: 0.45 * gain}));
   const images = [];
   for (const [k, im] of (clip.images || []).entries()) {
     let src = im.file && fs.existsSync(im.file) ? im.file : null;
@@ -167,7 +179,7 @@ for (const [idx, clip] of cuts.clips.entries()) {
   const bottomStart = Math.min(clip.bottomStart ?? (8 + idx * 17) % Math.max(1, bottomTotal - 5), Math.max(0, bottomTotal - 5));
   const props = {
     totalSeconds: total,
-    segments: segs.map(({from, to}) => ({from, to})),
+    segments: segs.map(({from, to, turn}) => ({from, to, turn: !!turn})),
     sourceFile: 'source.mp4',
     bottomFile: 'bottom.mp4',
     bottomStart,

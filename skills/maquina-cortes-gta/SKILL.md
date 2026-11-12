@@ -100,7 +100,11 @@ O usuário **não escolhe** os trechos. Você lê a transcrição e decide, segu
 
 ## Cortes rápidos, imagens e efeitos sonoros
 
-**Cortes rápidos (padrão):** além de tirar pausas, o `build.mjs` quebra planos longos a cada ~3,2 s, sempre no começo de uma palavra (não remove conteúdo). Cada quebra ganha zoom leve, um flash curto e um swoosh. No corte: `"ritmo": "normal"` desliga, ou `"cutEvery": 2.5` muda o intervalo.
+**Cortes (padrão, estilo dos cortes de referência de 12/11):** além de tirar pausas, o `build.mjs` quebra planos longos a cada ~2,8 s, sempre no começo de uma palavra (não remove conteúdo). **Cada quebra é um jump cut seco: muda só o zoom (107% ↔ 100%), sem flash e sem swoosh.** O swoosh (e o flash) é só para **virada de seção**: liste os segundos (do vídeo de origem) em `"turns": [312.8, 331.0]` no corte (3 a 5 por corte): quando o assunto muda, quando entra um b-roll ou quando o streamer cita um console. `"ritmo": "normal"` só tira as pausas; `"ritmo": "rapido"` volta ao estilo antigo (swoosh em todo corte; **não use**, o usuário achou repetitivo). **Pausas:** entre frases, acima de 0,3 s fica em 0,2 s (padrão aprovado pelo usuário no CapCut, 12/11); dentro da frase não mexa.
+
+**Menção a console (PlayStation, PS5, PS2, Xbox):** quando o streamer citar, marque o segundo em `turns` e liste uma `image` (ou o vídeo do console, curto, achado e baixado com o Playwright/yt-dlp): swoosh → vídeo/foto do console por ~1–2 s → volta ao ponto onde estava, com a fala e a legenda sem perder a sincronia (exemplo: `Download(14)`).
+
+**Escolha do trecho pelo "mais reproduzido":** para live ou vídeo longo do YouTube, use o **Playwright** (e o `agent-reach` para ler a página) para abrir o vídeo e ler o gráfico **"mais reproduzido"** (mapa de calor da barra de tempo). O pico mais alto é candidato a corte (mais retenção e engajamento); cruze com o gancho da transcrição e registre o minuto do pico. Se o gráfico não aparecer, diga e siga só pela transcrição.
 
 **Imagens aparecendo (GTA, mapas, prints):** escolha 1 a 3 momentos do corte em que a fala cita algo mostrável (ex.: "mapa", "PS5", um personagem) e liste em `images` no `cuts.json`, com `at` em **segundos do vídeo de origem** e `dur` em segundos:
 
@@ -111,9 +115,9 @@ O usuário **não escolhe** os trechos. Você lê a transcrição e decide, segu
 ]
 ```
 
-A imagem entra na metade de baixo com animação e um pop. `file` usa uma imagem do usuário. `query` busca no **Google** pela API oficial (Custom Search) e baixa a primeira imagem que servir; precisa das variáveis `GOOGLE_API_KEY` e `GOOGLE_CSE_ID` do usuário (gratuito até 100 buscas por dia; veja o cabeçalho de `template/scripts/buscar-imagens.mjs`). Sem elas, a imagem é pulada com um aviso: peça arquivos ao usuário. Prefira buscas que tragam material oficial (trailer, arte de divulgação).
+**Popups com imagem real, nunca só texto:** capa/arte do jogo quando falar o nome dele (ex.: "GTA 6"), **logo com fundo transparente vindo em direção à tela** quando o jogo é citado pela primeira vez, **ícone da Rockstar quando disser "Rockstar"**, mapa/aérea quando falar de mapa, personagem quando falar dele; para comparar, **dois mapas lado a lado** ("GTA 5" e "GTA 6"). Busque e salve as imagens com o **Playwright** (pesquisa de imagens) quando as chaves do Google não existirem. A imagem entra na metade de baixo com animação e um pop. `file` usa uma imagem do usuário. `query` busca no **Google** pela API oficial (Custom Search) e baixa a primeira imagem que servir; precisa das variáveis `GOOGLE_API_KEY` e `GOOGLE_CSE_ID` do usuário (gratuito até 100 buscas por dia; veja o cabeçalho de `template/scripts/buscar-imagens.mjs`). Sem elas, a imagem é pulada com um aviso: peça arquivos ao usuário. Prefira buscas que tragam material oficial (trailer, arte de divulgação).
 
-**Efeitos sonoros (whoosh, impacto, pop):** ficam em `~/.maquina-cortes-gta/sfx/` e o `build.mjs` os usa sozinho: impacto no quadro 0, whoosh em cada transição, pop em cada imagem, bem abaixo da voz (`sfxGain` no `config.json`, padrão 0,6). Se `efeitosGerados` for 0, **pergunte uma vez** se o usuário quer gerar (usa créditos da conta ElevenLabs dele, 3 efeitos curtos) e, só com o OK, rode:
+**Efeitos sonoros (whoosh, impacto, pop):** ficam em `~/.maquina-cortes-gta/sfx/` e o `build.mjs` os usa sozinho: impacto no quadro 0, **whoosh só nas viradas de seção (`turns`)**, pop em cada popup de imagem, **menos de 15 efeitos por 35 s**, bem abaixo da voz (mix final ≈ −14 LUFS) (`sfxGain` no `config.json`, padrão 0,6). Se `efeitosGerados` for 0, **pergunte uma vez** se o usuário quer gerar (usa créditos da conta ElevenLabs dele, 3 efeitos curtos) e, só com o OK, rode:
 
 ```bash
 node "<skill>/scripts/gerar-paleta-sfx.mjs"
@@ -135,6 +139,7 @@ Responda curto: a lista dos arquivos gerados e uma tabela com **assunto, gancho 
 
 ## Regras
 
+- **Estilo de referência (12/11/2026, ver `references/estilo-referencias.md`):** corte seco sem swoosh; swoosh só em virada de seção e junto de popups; popups com imagem real; pausas ≤ 0,2 s; **final "Seguir → Seguindo"** (animação de seguir, reutilizável) nos últimos ~3 s.
 - Estilo fixo: metade de cima o streamer (corte com zoom nos cortes), metade de baixo o vídeo; legenda palavra por palavra na divisa, caixa alta, palavra falada em amarelo; marca d'água no canto superior direito. Detalhes em `references/estilo-metade-metade.md`.
 - Não mude a marca d'água nem peça a logo de novo depois da primeira vez.
 - Cada execução é independente: não reaproveite `cuts.json` de outro vídeo.

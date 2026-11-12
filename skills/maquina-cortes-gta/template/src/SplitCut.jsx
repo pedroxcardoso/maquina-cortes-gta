@@ -32,7 +32,7 @@ const Punch = ({index, children}) => {
   return <AbsoluteFill style={{transform: `scale(${s})`}}>{children}</AbsoluteFill>;
 };
 
-// Flash branco bem rápido na transição entre dois planos (o swoosh toca junto, via props.sfx).
+// Flash branco bem rápido, só nas viradas de seção (`turns`); o swoosh toca junto, via props.sfx.
 const Flash = () => {
   const frame = useCurrentFrame();
   const o = interpolate(frame, [0, 5], [0.38, 0], {extrapolateRight: 'clamp'});
@@ -76,7 +76,7 @@ const Top = ({segments, fps, sourceFile, focus, crop, srcW, srcH}) => {
                 style={topVideoStyle(crop, srcW, srcH, focus)}
               />
             </Punch>
-            {i > 0 ? <Flash /> : null}
+            {seg.turn ? <Flash /> : null}
           </Sequence>
         );
       })}

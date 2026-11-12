@@ -179,3 +179,8 @@ GTA e Grand Theft Auto são marcas da Rockstar Games / Take-Two Interactive. Est
 ## Licença
 
 [MIT](LICENSE).
+
+
+## Estilo de referência (12/11/2026)
+
+Os cortes seguem `skills/maquina-cortes-gta/references/estilo-referencias.md`: jump cuts secos, swoosh só em viradas de seção (`turns`), popups com imagem real, pausas ≤ 0,2 s, final "Seguir → Seguindo" e trecho escolhido pelo "mais reproduzido".
