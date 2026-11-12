@@ -165,7 +165,7 @@ for (const [idx, clip] of cuts.clips.entries()) {
       try {
         [src] = await searchImages(im.query, path.join(work, 'imgs'), 1, `${clip.id}-${k}`);
       } catch (e) {
-        console.warn(`Imagem "${im.query}" ignorada: ${e.message}`);
+        console.warn(`Imagem "${im.query}" ignorada: ${e.message}. Opções: configurar GOOGLE_API_KEY e GOOGLE_CSE_ID, mandar a imagem como arquivo ("file") ou seguir sem ela.`);
       }
     }
     if (!src) continue;

@@ -20,7 +20,14 @@ const out = path.join(os.homedir(), '.maquina-cortes-gta', 'sfx');
 const force = process.argv.includes('--force');
 
 if (!process.env.ELEVENLABS_API_KEY) {
-  console.error('Defina a variável de ambiente ELEVENLABS_API_KEY (sua chave da ElevenLabs) e rode de novo.');
+  console.error(
+    [
+      'Sem a variável ELEVENLABS_API_KEY. Opções:',
+      '  (a) crie uma chave em elevenlabs.io (Developers > API Keys), defina ELEVENLABS_API_KEY no seu sistema, reinicie o terminal e rode de novo (gasta créditos da sua conta);',
+      `  (b) use sons seus: coloque impacto, whoosh e pop (mp3 ou wav) em ${out};`,
+      '  (c) siga sem efeitos sonoros: os cortes saem normalmente, só sem os efeitos.',
+    ].join('\n'),
+  );
   process.exit(1);
 }
 if (!fs.existsSync(gen)) {
