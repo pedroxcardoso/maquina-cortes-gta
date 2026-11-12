@@ -9,6 +9,7 @@ import {execFileSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {searchImages} from './buscar-imagens.mjs';
 
 const [work, outDir] = process.argv.slice(2);
 if (!work || !outDir) {
@@ -51,6 +52,28 @@ function segmentsFor(start, end, minSilence = 0.5, pad = 0.12) {
   return segs.length ? segs : [{from: start, to: end}];
 }
 
+// cortes rápidos: quebra planos longos a cada ~`every` segundos, sempre no começo de uma palavra
+// (não tira conteúdo; cada quebra ganha zoom, flash e swoosh). every = 0 desliga.
+function splitSegs(segs, every) {
+  if (!every) return segs;
+  const out = [];
+  for (const s of segs) {
+    const starts = words.map((w) => w.startMs / 1000).filter((t) => t > s.from + 1 && t < s.to - 1);
+    let cursor = s.from;
+    while (s.to - cursor > every * 1.5) {
+      const target = cursor + every;
+      const cand = starts
+        .filter((t) => t > cursor + 1.2 && t < s.to - 1)
+        .sort((a, b) => Math.abs(a - target) - Math.abs(b - target))[0];
+      if (!cand) break;
+      out.push({from: cursor, to: cand});
+      cursor = cand;
+    }
+    out.push({from: cursor, to: s.to});
+  }
+  return out;
+}
+
 // agrupa as palavras em páginas de até 3 palavras
 function makePages(list) {
   const pages = [];
@@ -76,10 +99,12 @@ function makePages(list) {
 }
 
 const results = [];
-cuts.clips.forEach((clip, idx) => {
+for (const [idx, clip] of cuts.clips.entries()) {
   const start = Math.max(0, clip.start);
   const end = Math.min(sourceTotal, clip.end);
-  const segs = segmentsFor(start, end);
+  // `ritmo`: "rapido" (padrão, quebra a cada ~3,2 s), "normal" (só tira as pausas) ou `cutEvery` em segundos
+  const every = clip.ritmo === 'normal' ? 0 : clip.cutEvery ?? 3.2;
+  const segs = splitSegs(segmentsFor(start, end), every);
 
   // linha do tempo nova, em quadros inteiros (mesma conta do componente)
   let outFrames = 0;
@@ -101,6 +126,44 @@ cuts.clips.forEach((clip, idx) => {
     remapped.push({text: w.text.toUpperCase(), startMs: Math.round(o * 1000), endMs: Math.round(oe * 1000)});
   }
 
+  // ---- efeitos sonoros e imagens ----
+  const toOut = (t) => {
+    const m = mapped.find((x) => t >= x.from - 0.02 && t < x.to) ?? mapped[mapped.length - 1];
+    return Math.max(0, m.outStart + (t - m.from));
+  };
+  const sfxDir = path.join(HOME, 'sfx');
+  const gain = cfg.sfxGain ?? 0.6; // volume geral dos efeitos (os efeitos ficam bem abaixo da voz)
+  const sfxFile = (name) => {
+    const f = ['.mp3', '.wav'].map((e) => path.join(sfxDir, name + e)).find((p) => fs.existsSync(p));
+    if (!f) return null;
+    const dst = `sfx-${name}${path.extname(f)}`;
+    fs.copyFileSync(f, path.join(work, dst));
+    return dst;
+  };
+  const sfx = [];
+  const impact = sfxFile('impacto');
+  const whoosh = sfxFile('whoosh');
+  const pop = sfxFile('pop');
+  if (impact) sfx.push({file: impact, at: 0, volume: 0.5 * gain});
+  if (whoosh) mapped.slice(1).forEach((m) => sfx.push({file: whoosh, at: Math.max(0, m.outStart - 0.08), volume: 0.45 * gain}));
+  const images = [];
+  for (const [k, im] of (clip.images || []).entries()) {
+    let src = im.file && fs.existsSync(im.file) ? im.file : null;
+    if (!src && im.query) {
+      try {
+        [src] = await searchImages(im.query, path.join(work, 'imgs'), 1, `${clip.id}-${k}`);
+      } catch (e) {
+        console.warn(`Imagem "${im.query}" ignorada: ${e.message}`);
+      }
+    }
+    if (!src) continue;
+    const dst = `img-${clip.id}-${k}${path.extname(src)}`;
+    fs.copyFileSync(src, path.join(work, dst));
+    const at = toOut(im.at);
+    images.push({file: dst, at, dur: im.dur ?? 2.2});
+    if (pop) sfx.push({file: pop, at: Math.max(0, at - 0.05), volume: 0.45 * gain});
+  }
+
   const bottomStart = Math.min(clip.bottomStart ?? (8 + idx * 17) % Math.max(1, bottomTotal - 5), Math.max(0, bottomTotal - 5));
   const props = {
     totalSeconds: total,
@@ -115,6 +178,8 @@ cuts.clips.forEach((clip, idx) => {
     sourceHeight: meta.height,
     pages: makePages(remapped),
     watermark: {logo: logoName, name: cfg.profileName},
+    sfx,
+    images,
   };
   const propsFile = path.join(work, `props-${clip.id}.json`);
   fs.writeFileSync(propsFile, JSON.stringify(props));
@@ -128,6 +193,6 @@ cuts.clips.forEach((clip, idx) => {
     {cwd: ENGINE, stdio: 'inherit'},
   );
   results.push({id: clip.id, arquivo: out, segundos: Number(total.toFixed(1)), ok: r.status === 0});
-});
+}
 console.log(JSON.stringify(results, null, 2));
 process.exit(results.every((r) => r.ok) ? 0 : 1);

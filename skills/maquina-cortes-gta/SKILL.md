@@ -20,6 +20,7 @@ node "<skill>/scripts/setup.mjs" --check
 - `engine: false` ou `whisperModel: false`: rode `node "<skill>/scripts/setup.mjs"` (instala o Remotion e o whisper.cpp; leva alguns minutos e baixa arquivos grandes; avise o usuário antes).
 - `ffmpeg: false`: peça para o usuário instalar o FFmpeg (o script mostra o comando do sistema dele) e pare.
 - `ytdlp: false`: só aceite arquivo de vídeo (não link) e diga como instalar o yt-dlp.
+- Opcionais: `efeitosGerados: 0` (sem efeitos sonoros ainda), `elevenlabsKey` e `python` (para gerá-los) e `googleImagens` (para buscar imagens). Veja a seção "Cortes rápidos, imagens e efeitos sonoros".
 
 ## 1. Perfil (só na primeira vez)
 
@@ -96,6 +97,29 @@ O usuário **não escolhe** os trechos. Você lê a transcrição e decide, segu
 (`id` com número e assunto; `bottomStart` é opcional e dá um ponto de partida diferente para o vídeo de baixo.)
 
 **Live com várias câmeras ou tela do jogo ocupando o quadro** (ex.: um react com 4 câmeras pequenas ao lado do jogo): o `focus` sozinho não acha o streamer. Olhe o quadro extraído e adicione `"crop": {"x": 1092, "y": 118, "w": 146, "h": 130}` ao corte, em **pixels do vídeo de origem**, em volta da câmera de quem está falando (proporção ~1,125:1 para preencher a metade de cima). Câmera pequena ampliada fica borrada; avise o usuário e sugira uma origem com o streamer em plano grande.
+
+## Cortes rápidos, imagens e efeitos sonoros
+
+**Cortes rápidos (padrão):** além de tirar pausas, o `build.mjs` quebra planos longos a cada ~3,2 s, sempre no começo de uma palavra (não remove conteúdo). Cada quebra ganha zoom leve, um flash curto e um swoosh. No corte: `"ritmo": "normal"` desliga, ou `"cutEvery": 2.5` muda o intervalo.
+
+**Imagens aparecendo (GTA, mapas, prints):** escolha 1 a 3 momentos do corte em que a fala cita algo mostrável (ex.: "mapa", "PS5", um personagem) e liste em `images` no `cuts.json`, com `at` em **segundos do vídeo de origem** e `dur` em segundos:
+
+```json
+"images": [
+  {"query": "GTA 6 mapa Leonida", "at": 312.8, "dur": 2.2},
+  {"file": "C:/imagens/ps5.png", "at": 318.0}
+]
+```
+
+A imagem entra na metade de baixo com animação e um pop. `file` usa uma imagem do usuário. `query` busca no **Google** pela API oficial (Custom Search) e baixa a primeira imagem que servir; precisa das variáveis `GOOGLE_API_KEY` e `GOOGLE_CSE_ID` do usuário (gratuito até 100 buscas por dia; veja o cabeçalho de `template/scripts/buscar-imagens.mjs`). Sem elas, a imagem é pulada com um aviso: peça arquivos ao usuário. Prefira buscas que tragam material oficial (trailer, arte de divulgação).
+
+**Efeitos sonoros (whoosh, impacto, pop):** ficam em `~/.maquina-cortes-gta/sfx/` e o `build.mjs` os usa sozinho: impacto no quadro 0, whoosh em cada transição, pop em cada imagem, bem abaixo da voz (`sfxGain` no `config.json`, padrão 0,6). Se `efeitosGerados` for 0, **pergunte uma vez** se o usuário quer gerar (usa créditos da conta ElevenLabs dele, 3 efeitos curtos) e, só com o OK, rode:
+
+```bash
+node "<skill>/scripts/gerar-paleta-sfx.mjs"
+```
+
+Isso usa a skill `sound-effects` (glebis, MIT) que vem junto no repositório e a variável `ELEVENLABS_API_KEY`. Nunca peça nem escreva a chave no chat. Sem efeitos gerados, o corte sai mudo de efeitos.
 
 ## 6. Renderizar
 

@@ -54,6 +54,11 @@ function status() {
     ffmpeg: !!which('ffmpeg'),
     ffprobe: !!which('ffprobe'),
     ytdlp: !!which('yt-dlp'),
+    // efeitos sonoros (opcional): Python + chave da ElevenLabs; imagens do Google (opcional): chave e id da API
+    python: !!(which('python3') || which('python')),
+    elevenlabsKey: !!process.env.ELEVENLABS_API_KEY,
+    googleImagens: !!(process.env.GOOGLE_API_KEY && process.env.GOOGLE_CSE_ID),
+    efeitosGerados: fs.existsSync(path.join(HOME, 'sfx')) ? fs.readdirSync(path.join(HOME, 'sfx')).filter((f) => /\.(mp3|wav)$/.test(f)).length : 0,
     engine: fs.existsSync(path.join(ENGINE, 'node_modules', 'remotion')),
     whisperModel: fs.existsSync(path.join(WHISPER, `ggml-${model}.bin`)),
     perfilConfigurado: !!(c.profileName && c.logo && fs.existsSync(path.join(HOME, c.logo))),

@@ -39,7 +39,9 @@ O visual é o de "metade streamer, metade vídeo": a pessoa em cima, gameplay ou
 |---|---|
 | "faz cortes desse vídeo" (link ou arquivo) | De 3 a 5 cortes de 20 a 60 s, **cada um de um assunto diferente e com um gancho diferente**, escolhidos pela transcrição |
 | (automático) | Legenda **palavra por palavra** na divisa, com a palavra falada em amarelo |
-| (automático) | **Pausas longas removidas** e zoom a cada corte, para o ritmo não cair |
+| (automático) | **Pausas longas removidas** e **cortes rápidos** (quebra a cada ~3 s, com zoom leve, flash e swoosh) |
+| (opcional) | **Imagens do GTA aparecendo** (busca no Google pela API oficial, ou arquivos seus) com animação e pop |
+| (opcional) | **Efeitos sonoros** (whoosh, impacto, pop) gerados com a ElevenLabs pela skill [sound-effects](THIRD_PARTY.md), que vem junto; usa créditos da sua conta |
 | (automático) | Tela dividida: **streamer em cima, vídeo embaixo** (um trailer oficial do GTA VI ou o vídeo que você mandar) |
 | (automático) | A **marca d'água do seu perfil** no canto superior direito de todos os cortes |
 | "qual era o gancho de cada um?" | Tabela com o assunto, a frase de gancho, a duração, a nota e um título curto sugerido |

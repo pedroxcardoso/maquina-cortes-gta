@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AbsoluteFill,
   Easing,
+  Html5Audio,
   Img,
   Loop,
   OffthreadVideo,
@@ -23,12 +24,19 @@ const YELLOW = '#FFD400';
 // Zoom curto a cada corte: o 1º plano entra mais "apertado", os ímpares dão um leve punch-in.
 const Punch = ({index, children}) => {
   const frame = useCurrentFrame();
-  const from = index === 0 ? 1.14 : index % 2 === 1 ? 1.07 : 1.0;
+  const from = index === 0 ? 1.12 : index % 2 === 1 ? 1.06 : 1.0;
   const s = interpolate(frame, [0, 9], [from, 1], {
     extrapolateRight: 'clamp',
     easing: Easing.out(Easing.cubic),
   });
   return <AbsoluteFill style={{transform: `scale(${s})`}}>{children}</AbsoluteFill>;
+};
+
+// Flash branco bem rápido na transição entre dois planos (o swoosh toca junto, via props.sfx).
+const Flash = () => {
+  const frame = useCurrentFrame();
+  const o = interpolate(frame, [0, 5], [0.38, 0], {extrapolateRight: 'clamp'});
+  return <AbsoluteFill style={{background: '#fff', opacity: o}} />;
 };
 
 // Estilo do vídeo de cima. Sem `crop`: preenche a metade (cover) e usa `focus` para enquadrar.
@@ -68,6 +76,7 @@ const Top = ({segments, fps, sourceFile, focus, crop, srcW, srcH}) => {
                 style={topVideoStyle(crop, srcW, srcH, focus)}
               />
             </Punch>
+            {i > 0 ? <Flash /> : null}
           </Sequence>
         );
       })}
@@ -89,6 +98,35 @@ const Bottom = ({file, start, duration, fps, total}) => {
           style={{width: '100%', height: '100%', objectFit: 'cover'}}
         />
       </Loop>
+    </div>
+  );
+};
+
+// Imagem que aparece na metade de baixo (ex.: print ou foto do GTA): entra com escala 0,9 → 1 e fade, sai com fade.
+const PopImage = ({file, durationInFrames}) => {
+  const frame = useCurrentFrame();
+  const inn = interpolate(frame, [0, 8], [0, 1], {extrapolateRight: 'clamp', easing: Easing.out(Easing.back(1.6))});
+  const out = interpolate(frame, [durationInFrames - 6, durationInFrames], [1, 0], {extrapolateLeft: 'clamp'});
+  const scale = 0.9 + 0.1 * inn;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        width: W,
+        top: TOP_H + 70,
+        height: H - TOP_H - 140,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: Math.min(inn, out),
+        transform: `scale(${scale})`,
+      }}
+    >
+      <Img
+        src={staticFile(file)}
+        style={{maxWidth: 800, maxHeight: 620, objectFit: 'contain', borderRadius: 26, border: '5px solid #fff', boxShadow: '0 18px 48px rgba(0,0,0,0.55)'}}
+      />
     </div>
   );
 };
@@ -170,6 +208,14 @@ export const SplitCut = (props) => {
         srcH={props.sourceHeight}
       />
       <Bottom file={props.bottomFile} start={props.bottomStart} duration={props.bottomDuration} fps={fps} total={total} />
+      {(props.images || []).map((im, i) => {
+        const frames = Math.max(12, Math.round(im.dur * fps));
+        return (
+          <Sequence key={`img${i}`} from={Math.round(im.at * fps)} durationInFrames={frames}>
+            <PopImage file={im.file} durationInFrames={frames} />
+          </Sequence>
+        );
+      })}
       <div
         style={{
           position: 'absolute',
@@ -182,6 +228,11 @@ export const SplitCut = (props) => {
       />
       <Captions pages={props.pages} fps={fps} />
       <Watermark logo={props.watermark.logo} name={props.watermark.name} />
+      {(props.sfx || []).map((s, i) => (
+        <Sequence key={`sfx${i}`} from={Math.max(0, Math.round(s.at * fps))} durationInFrames={Math.round(3 * fps)}>
+          <Html5Audio src={staticFile(s.file)} volume={s.volume} />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };

@@ -11,5 +11,12 @@ if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
 Copy-Item -Recurse -Force $skill $dest
 Write-Host "Skill copiada para $dest"
 
+# skill sound-effects (glebis, MIT): gera os efeitos sonoros com a ElevenLabs
+$sfx = Join-Path $PSScriptRoot 'skills\sound-effects'
+$sfxDest = Join-Path $env:USERPROFILE '.claude\skills\sound-effects'
+if (Test-Path $sfxDest) { Remove-Item -Recurse -Force $sfxDest }
+Copy-Item -Recurse -Force $sfx $sfxDest
+Write-Host "Skill sound-effects copiada para $sfxDest"
+
 node (Join-Path $dest 'scripts\setup.mjs')
 Write-Host "`nPronto. Abra o Claude Code e use /maquina-cortes-gta"
