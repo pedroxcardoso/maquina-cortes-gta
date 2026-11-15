@@ -48,6 +48,17 @@ O visual é o de "metade streamer, metade vídeo": a pessoa em cima, gameplay ou
 
 Cada corte sai em MP4 1080×1920, 30 fps.
 
+## Modo ao vivo (live acontecendo agora)
+
+> /maquina-cortes-gta faz cortes dessa live enquanto ela rola: https://www.twitch.tv/STREAMER
+
+A skill grava a live em blocos de 10 minutos e, a cada bloco, transcreve, olha os quadros e decide o que vira vídeo:
+
+- **Vídeos longos para o YouTube** (1920×1080, sem limite de duração): **missões completas**, do começo ao fim, mesmo que durem horas, e **sessões de exploração** (cidade, descobertas, missões secundárias). Tentativas que falharam, carregamentos, menus e AFK são removidos; viagens longas sem fala são aceleradas. Sai junto um arquivo de capítulos para a descrição.
+- **Curtos para Shorts, Reels e TikTok** (1080×1920, até 60 s, no estilo metade/metade): os melhores momentos de dentro dos vídeos longos, saindo durante a live.
+
+Para parar a gravação antes do fim, crie o arquivo `PARAR` na pasta da live. Detalhes em [`references/ao-vivo.md`](skills/maquina-cortes-gta/references/ao-vivo.md).
+
 ## Instalação
 
 Precisa do **Claude Code** (a skill roda comandos no seu computador) e de três programas que a instalação confere: **Node.js 18+** (de preferência 22+), **FFmpeg** e, para aceitar links, **yt-dlp**.

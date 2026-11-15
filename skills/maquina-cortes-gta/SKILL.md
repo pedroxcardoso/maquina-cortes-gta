@@ -1,6 +1,6 @@
 ---
 name: maquina-cortes-gta
-description: Transforma um vídeo de streamer ou podcast (link ou arquivo) em vários cortes verticais de Shorts sobre GTA 6, cada um com um assunto e um gancho diferente, no estilo metade streamer e metade vídeo, com legenda palavra por palavra, pausas cortadas, zoom nos cortes e a marca d'água do seu perfil (logo + nome). Use com /maquina-cortes-gta ou quando o usuário pedir cortes de GTA, "cortar esse vídeo" ou "máquina de cortes".
+description: Transforma um vídeo de streamer ou podcast (link ou arquivo) em vários cortes verticais de Shorts sobre GTA 6, cada um com um assunto e um gancho diferente, no estilo metade streamer e metade vídeo, com legenda palavra por palavra, pausas cortadas, zoom nos cortes e a marca d'água do seu perfil (logo + nome). Também tem um modo AO VIVO, que grava uma live enquanto ela acontece e gera vídeos longos para o YouTube (missões inteiras, exploração) e curtos para Shorts, Reels e TikTok. Use com /maquina-cortes-gta ou quando o usuário pedir cortes de GTA, "cortar esse vídeo", "cortes da live" ou "máquina de cortes".
 ---
 
 # máquina-cortes-gta
@@ -10,6 +10,8 @@ Você recebe um vídeo longo e entrega **vários cortes prontos** em 9:16, cada 
 Escreva pouco no chat: nunca despeje a transcrição nem JSON inteiro; mostre só o que o usuário precisa decidir ou receber.
 
 `<skill>` = a pasta onde este SKILL.md está. `~/.maquina-cortes-gta` = pasta de dados do usuário (motor, whisper, nome do perfil e logo).
+
+**Live acontecendo agora?** Se o usuário mandar o link de uma live em andamento ou pedir cortes "da live enquanto ela rola", faça os passos 0 e 1 abaixo e siga `references/ao-vivo.md` (grava em blocos e gera vídeos longos de missões e exploração para o YouTube, e curtos para Shorts, Reels e TikTok).
 
 ## 0. Conferir a instalação
 
@@ -101,6 +103,8 @@ O usuário **não escolhe** os trechos. Você lê a transcrição e decide, segu
 (`id` com número e assunto; `bottomStart` é opcional e dá um ponto de partida diferente para o vídeo de baixo.)
 
 **Live com várias câmeras ou tela do jogo ocupando o quadro** (ex.: um react com 4 câmeras pequenas ao lado do jogo): o `focus` sozinho não acha o streamer. Olhe o quadro extraído e adicione `"crop": {"x": 1092, "y": 118, "w": 146, "h": 130}` ao corte, em **pixels do vídeo de origem**, em volta da câmera de quem está falando (proporção ~1,125:1 para preencher a metade de cima). Câmera pequena ampliada fica borrada; avise o usuário e sugira uma origem com o streamer em plano grande.
+
+**React (o streamer reagindo a um trailer ou gameplay que ocupa a tela):** em vez de um vídeo de baixo separado, use `"bottomSync": true` com `"bottomCrop": {"x": ..., "y": ..., "w": ..., "h": ...}` (pixels da origem, proporção ~1,125:1, em volta da área do jogo e **sem a câmera**): a metade de baixo mostra o próprio vídeo, nos mesmos cortes da metade de cima, então o que ele vê fica sincronizado com a reação. Combine com `crop` na câmera dele para a metade de cima.
 
 ## Cortes rápidos, imagens e efeitos sonoros
 

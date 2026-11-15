@@ -84,6 +84,33 @@ const Top = ({segments, fps, sourceFile, focus, crop, srcW, srcH}) => {
   );
 };
 
+// Metade de baixo SINCRONIZADA (react): mostra o próprio vídeo de origem, recortado na área do jogo (`crop`),
+// seguindo os mesmos cortes da metade de cima, sem som (o som já vem da metade de cima).
+const BottomSync = ({segments, fps, sourceFile, crop, srcW, srcH}) => {
+  let offset = 0;
+  return (
+    <div style={{position: 'absolute', left: 0, top: TOP_H, width: W, height: H - TOP_H, overflow: 'hidden', background: '#000'}}>
+      {segments.map((seg, i) => {
+        const frames = Math.max(1, Math.round((seg.to - seg.from) * fps));
+        const start = Math.round(seg.from * fps);
+        const from = offset;
+        offset += frames;
+        return (
+          <Sequence key={i} from={from} durationInFrames={frames}>
+            <OffthreadVideo
+              src={staticFile(sourceFile)}
+              startFrom={start}
+              endAt={start + frames}
+              muted
+              style={topVideoStyle(crop, srcW, srcH, {x: 50, y: 50})}
+            />
+          </Sequence>
+        );
+      })}
+    </div>
+  );
+};
+
 const Bottom = ({file, start, duration, fps, total}) => {
   const startFrame = Math.round(start * fps);
   const loopFrames = duration > 0 ? Math.max(30, Math.floor(duration * fps) - 2) : total;
@@ -207,7 +234,18 @@ export const SplitCut = (props) => {
         srcW={props.sourceWidth}
         srcH={props.sourceHeight}
       />
-      <Bottom file={props.bottomFile} start={props.bottomStart} duration={props.bottomDuration} fps={fps} total={total} />
+      {props.bottomSync ? (
+        <BottomSync
+          segments={props.segments}
+          fps={fps}
+          sourceFile={props.sourceFile}
+          crop={props.bottomCrop}
+          srcW={props.sourceWidth}
+          srcH={props.sourceHeight}
+        />
+      ) : (
+        <Bottom file={props.bottomFile} start={props.bottomStart} duration={props.bottomDuration} fps={fps} total={total} />
+      )}
       {(props.images || []).map((im, i) => {
         const frames = Math.max(12, Math.round(im.dur * fps));
         return (

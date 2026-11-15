@@ -21,11 +21,69 @@ const HOME = path.join(os.homedir(), '.maquina-cortes-gta');
 const ENGINE = path.join(HOME, 'engine');
 const cfg = JSON.parse(fs.readFileSync(path.join(HOME, 'config.json'), 'utf8'));
 const read = (f) => JSON.parse(fs.readFileSync(path.join(work, f), 'utf8'));
-const words = read('captions.json');
+// Tira marcações do whisper que não são fala ("[música]", "[Som de som]", "(risos)"), mesmo quando vêm partidas
+// em várias palavras. Elas apareceriam na legenda como se alguém tivesse falado.
+const words = [];
+{
+  let tag = null;
+  for (const w of read('captions.json')) {
+    const t = w.text.trim();
+    if (!tag && /^[[(]/.test(t)) tag = t[0] === '[' ? ']' : ')';
+    if (tag) {
+      if (t.endsWith(tag)) tag = null;
+      continue;
+    }
+    words.push(w);
+  }
+}
 const silences = read('silences.json');
 const cuts = read('cuts.json');
 const meta = read('meta.json');
 fs.mkdirSync(outDir, {recursive: true});
+
+// O whisper às vezes "estica" as palavras por cima de um silêncio (marca a palavra segundos antes de ela ser falada).
+// Palavras que começam dentro de um silêncio são levadas para logo depois dele, distribuídas até a próxima palavra
+// que já estava certa. Sem isso, a legenda aparece antes da fala e o corte das pausas apaga essas palavras.
+{
+  const inSilence = (t) => silences.find((s) => s.end - s.start >= 0.45 && t > s.start + 0.05 && t < s.end - 0.05);
+  for (let i = 0; i < words.length; ) {
+    const sil = inSilence(words[i].startMs / 1000);
+    if (!sil) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < words.length && inSilence(words[j].startMs / 1000) === sil) j++;
+    const n = j - i;
+    const from = sil.end + 0.02;
+    const next = Math.max(from + n * 0.1, j < words.length ? words[j].startMs / 1000 : from + n * 0.3);
+    // só os trechos com som entre `from` e `next` (pode haver outras pausas no meio)
+    const speech = [];
+    let c = from;
+    for (const s of silences) {
+      if (s.end - s.start < 0.45 || s.end <= c || s.start >= next) continue;
+      if (s.start > c) speech.push([c, s.start]);
+      c = Math.max(c, s.end);
+    }
+    if (next > c) speech.push([c, next]);
+    const L = speech.reduce((t, [a, b]) => t + b - a, 0);
+    const at = (x) => {
+      // posição x (0..L) na linha do tempo só de fala → segundo real
+      for (const [a, b] of speech) {
+        if (x <= b - a) return a + x;
+        x -= b - a;
+      }
+      return next;
+    };
+    const step = L / n;
+    for (let k = 0; k < n; k++) {
+      const s = L > 0.05 ? at(k * step) : from + k * 0.1;
+      words[i + k].startMs = Math.round(s * 1000);
+      words[i + k].endMs = Math.round((s + Math.max(0.08, Math.min(0.5, step - 0.02))) * 1000);
+    }
+    i = j;
+  }
+}
 
 // logo na pasta pública do render
 const logoName = `wm-${cfg.logo}`;
@@ -186,6 +244,9 @@ for (const [idx, clip] of cuts.clips.entries()) {
     bottomDuration: bottomTotal - bottomStart,
     focus: clip.focus || {x: 50, y: 35},
     crop: clip.crop || null,
+    // react: metade de baixo = o próprio vídeo de origem (área do jogo), nos mesmos cortes da metade de cima
+    bottomSync: !!clip.bottomSync,
+    bottomCrop: clip.bottomCrop || null,
     sourceWidth: meta.width,
     sourceHeight: meta.height,
     pages: makePages(remapped),
@@ -193,7 +254,8 @@ for (const [idx, clip] of cuts.clips.entries()) {
     sfx,
     images,
   };
-  const propsFile = path.join(work, `props-${clip.id}.json`);
+  // caminho absoluto: o Remotion roda a partir da pasta do motor
+  const propsFile = path.resolve(work, `props-${clip.id}.json`);
   fs.writeFileSync(propsFile, JSON.stringify(props));
   const out = path.resolve(outDir, `${clip.id}.mp4`);
   console.log(`> Renderizando ${clip.id} (${total.toFixed(1)} s)`);
